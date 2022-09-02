@@ -1,10 +1,16 @@
+// Authors: Jacob Gifford, Jake Reynolds, Madaleine Osmun, Melissa Robles, Yuze Dong
+
+// Note: This program takes a .csv file of names as an input, and outputs a .csv file of teams
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
+import java.io.Writer;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class App {
     // input .csv file
@@ -13,63 +19,69 @@ public class App {
 
     Scanner inFile1 = new Scanner(new File("names.csv")).useDelimiter(",");
 
-    List<String> names = new ArrayList<String>();
+    ArrayList<String> names = new ArrayList<String>();
 
-    while (inFile1.hasNext()) {
-        token1 = inFile1.next();
+    while (inFile1.hasNextLine()) {
+        token1 = inFile1.nextLine();
         names.add(token1);
     }
     inFile1.close();
 
-    String[] namesArray = names.toArray(new String[0]);
-
-    for (String s : namesArray) {
-        System.out.println(s);
-    }
-
     // process
+
     // create HashMap
-    HashMap<Integer, String> nameTeams = new HashMap<Integer, String>();
+    HashMap<String, String> nameTeams = new HashMap<String, String>();
 
     // user input for number of teams
     Scanner inputTeams = new Scanner(System.in);  // Create a Scanner object
     System.out.println("Enter number of teams: ");
-
     Integer numTeams = inputTeams.nextInt();  // Read user input
-    System.out.println(numTeams);  // Output user input
+    inputTeams.close();
 
-    // TODO: randomization process here
+    int counter = 1;
 
-    for (String s : namesArray) {
+    // randomization process
+    while (names.size() > 0) {
+        for (int i = 1; i <= numTeams; i++) {
+            int numNames = names.size(); 
+            
+            if (names.size() > 0) {
+                int randomNum = ThreadLocalRandom.current().nextInt(0, numNames);
+                // gets a random name from the arraylist    
+                String currentName = names.get(randomNum);
+                String team = String.valueOf(i);
+                String teamMembers = "";
 
+                if (counter > numTeams) {
+                    teamMembers = nameTeams.get(team) + "," + currentName;
+                }
+                else {
+                    teamMembers = currentName;
+                }
+
+                nameTeams.put(team, teamMembers);
+                names.remove(randomNum);
+            }
+            else {
+                break;
+            }
+            counter += 1;
+        }
     }
-    nameTeams.put(1, "USA");
+
     System.out.println(nameTeams);
 
-    // create output .csv file
-    try {
-        File myObj = new File("teams.csv");
-        if (myObj.createNewFile()) {
-        System.out.println("File created: " + myObj.getName());
-        } else {
-        System.out.println("File already exists.");
-        }
-    } catch (IOException e) {
-        System.out.println("An error occurred.");
-        e.printStackTrace();
-    }
+    String eol = System.getProperty("line.separator");
 
-    // write to output file
-    try {
-        FileWriter myWriter = new FileWriter("teams.csv");
-        for (String s : namesArray) {
-            myWriter.write(s);
-        }
-        myWriter.close();
-        System.out.println("Successfully wrote to the file.");
-    } catch (IOException e) {
-        System.out.println("An error occurred.");
-        e.printStackTrace();
+    try (Writer writer = new FileWriter("teams.csv")) {
+    for (Map.Entry<String, String> entry : nameTeams.entrySet()) {
+        writer.append(entry.getKey())
+            .append(',')
+            .append(entry.getValue())
+            .append(eol);
+    }
+    } catch (IOException ex) {
+    ex.printStackTrace(System.err);
     }
 
     }
